@@ -1,105 +1,15 @@
 const express = require('express');
 
+const CategoriesService = require('./../services/category');
+const ProductsService = require('./../services/product');
+
 const router = express.Router();
-
-const products = [
-	{
-		"id": 1,
-		"title": "Strawberry mochi",
-		"price": 250,
-		"description": "Mochi filled with strawberry cream",
-		"category": 2,
-		"image": "/images/mochi_1.jpeg"
-	},
-	{
-		"id": 2,
-		"title": "Matcha mochi",
-		"price": 300,
-		"description": "Mochi filled with matcha tea cream",
-		"category": 3,
-		"image" : "/images/mochi_2.jpeg"
-	},
-	{
-		"id": 3,
-		"title": "Sesame mochi",
-		"price": 300,
-		"description": "Mochi filled with sesame cream",
-		"category": 6,
-		"image" : "/images/mochi_3.jpeg"
-	},
-	{
-		"id": 4,
-		"title": "Chocolate mochi",
-		"price": 250,
-		"description": "Mochi filled with chocolate cream",
-		"category": 4,
-		"image": "/images/mochi_4.jpeg"
-	},
-	{
-		"id": 5,
-		"title": "Mango mochi",
-		"price": 300,
-		"description": "Mochi filled with mango cream",
-		"category": 2,
-		"image" : "/images/mochi_5.jpeg"
-	},
-	{
-		"id": 6,
-		"title": "White Chocolate mochi",
-		"price": 350,
-		"description": "Mochi filled with white chocolate cream",
-		"category": 4,
-		"image" : "/images/mochi_6.jpeg"
-	}
-];
-
-const categories = [
-	{
-		"id": 1,
-		"title": "Anko",
-		"description": "Filled with red bean cream"
-	},
-	{
-		"id": 2,
-		"title": "Fruits",
-		"description": "Filled with fruit cream"
-	},
-	{
-		"id": 3,
-		"title": "Ice cream",
-		"description": "Filled with ice cream"
-	},
-	{
-		"id": 4,
-		"title": "Cream",
-		"description": "Filled with sweet cream"
-	},
-	{
-		"id": 5,
-		"title": "Nuts and seeds",
-		"description": "Filled with nuts and seeds cream"
-	},
-];
+const service = new CategoriesService();
 
 /**
  * @swagger
  * components:
  *   schemas:
- *     NewCategory:
- *       type: object
- *       properties:
- *         id:
- *           type: integer
- *           description: Category id.
- *           example: 2
- *         title:
- *           type: string
- *           description: Category name.
- *           example: Fruits
- *         description:
- *           type: string
- *           description: Category description.
- *           example: Filled with fruit cream
  *     Category:
  *       type: object
  *       properties:
@@ -142,19 +52,7 @@ const categories = [
  *           type: string
  *           description: URL of the product image
  *           example: /images/mochi_1.jpeg
- *     MessageCategoryList:
- *       type: object
- *       properties:
- *         message:
- *           type: string
- *           description: A message.
- *           example: Category created
- *         categories:
- *           type: array
- *           items:
- *             $ref: '#/components/schemas/Category'
- *           description: List of categories.
- *     ErrorNotFound:
+ *     Error:
  *       type: object
  *       properties:
  *         message:
@@ -180,8 +78,10 @@ const categories = [
  *               items:
  *                 $ref: '#/components/schemas/Category'
 */ 
-router.get('/', (req, res) => {
-	res.json(categories);
+router.get('/', async (req, res) => {
+	const categories = await service.find();
+
+	res.status(200).json(categories);
 });
 
  /**
@@ -212,19 +112,20 @@ router.get('/', (req, res) => {
  *           application/json:
  *             schema:
  *               type: object
- *               $ref: '#/components/schemas/ErrorNotFound'
+ *               $ref: '#/components/schemas/Error'
 */
-router.get('/:categoryId', (req, res) => {
+router.get('/:categoryId', async (req, res) => {
 	const { categoryId } = req.params;
 
-	const category = categories.find((category) => category.id == categoryId);
+	try {
+		const category = await service.findOne(categoryId);
 
-	if (category === undefined) {
-		res.status(404).json({
-			message: "Not found"
-		});
-	} else {
 		res.status(200).json(category);
+	}
+	catch (error) {
+		res.status(404).json({
+			message: error.message
+		});
 	}
 });
 
@@ -239,7 +140,7 @@ router.get('/:categoryId', (req, res) => {
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/NewCategory'
+ *             $ref: '#/components/schemas/Category'
  *     responses:
  *       201:
  *         description: Category created
@@ -247,23 +148,13 @@ router.get('/:categoryId', (req, res) => {
  *           application/json:
  *             schema:
  *               type: object
- *               $ref: '#/components/schemas/MessageCategoryList'
+ *               $ref: '#/components/schemas/Category'
 */
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
 	const body = req.body;
+	const category = await service.create(body);
 
-    const newCategory = {
-        id : body.id,
-        title : body.title,
-        description : body.description,
-    };
-
-    categories.push(newCategory);
-
-	res.status(201).json({
-		message: 'Category created',
-		categories
-	});
+	res.status(201).json(category);
 });
 
  /**
@@ -293,37 +184,27 @@ router.post('/', (req, res) => {
  *           application/json:
  *             schema:
  *               type: object
- *               $ref: '#/components/schemas/MessageCategoryList'
+ *               $ref: '#/components/schemas/Cateogory'
  *       404:
  *         description: Error not found
  *         content:
  *           application/json:
  *             schema:
  *               type: object
- *               $ref: '#/components/schemas/ErrorNotFound'
+ *               $ref: '#/components/schemas/Error'
 */
-router.put('/:categoryId', (req, res) => {
+router.put('/:categoryId', async (req, res) => {
 	const body = req.body;
 	const { categoryId } = req.params;
 
-	const index = categories.findIndex((category) => category.id == categoryId);
+	try {
+		const category = await service.update(categoryId, body);
 
-	if (index === -1) {
+		res.status(200).json(category);
+	}
+	catch (error) {
 		res.status(404).json({
-			message: "Not found"
-		});
-	} else {
-		const updatedCategory = {
-	        id : body.id,
-	        title : body.title,
-	        description : body.description,
-	    };
-
-	    categories[index] = updatedCategory;
-
-		res.status(200).json({
-			message: 'Category updated',
-			categories
+			message: error.message
 		});
 	}
 });
@@ -355,35 +236,27 @@ router.put('/:categoryId', (req, res) => {
  *           application/json:
  *             schema:
  *               type: object
- *               $ref: '#/components/schemas/MessageCategoryList'
+ *               $ref: '#/components/schemas/Category'
  *       404:
  *         description: Error not found
  *         content:
  *           application/json:
  *             schema:
  *               type: object
- *               $ref: '#/components/schemas/ErrorNotFound'
+ *               $ref: '#/components/schemas/Error'
 */
-router.patch('/:categoryId', (req, res) => {
+router.patch('/:categoryId', async (req, res) => {
 	const body = req.body;
 	const { categoryId } = req.params;
 
-	const index = categories.findIndex((category) => category.id == categoryId);
+	try {
+		const category = await service.update(categoryId, body);
 
-	if (index === -1) {
+		res.status(200).json(category);
+	}
+	catch (error) {
 		res.status(404).json({
-			message: "Not found"
-		});
-	} else {
-		const toUpdate = Object.keys(body)
-
-        toUpdate.forEach(key => {
-            categories[index][key] = body[key];
-        });
-
-		res.status(200).json({
-			message: 'Category updated',
-			categories
+			message: error.message
 		});
 	}
 });
@@ -408,31 +281,26 @@ router.patch('/:categoryId', (req, res) => {
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               $ref: '#/components/schemas/MessageCategoryList'
+ *               type: integer
  *       404:
  *         description: Error not found
  *         content:
  *           application/json:
  *             schema:
  *               type: object
- *               $ref: '#/components/schemas/ErrorNotFound'
+ *               $ref: '#/components/schemas/Error'
 */
-router.delete('/:categoryId', (req, res) => {
+router.delete('/:categoryId', async (req, res) => {
 	const { categoryId } = req.params;
 
-	const index = categories.findIndex((category) => category.id == categoryId);
+	try {
+		const id = await service.delete(categoryId);
 
-	if (index === -1) {
+		res.status(200).json(id);
+	} 
+	catch (error) {
 		res.status(404).json({
-			message: "Not found"
-		});
-	} else {
-		categories.splice(index, 1); 
-
-		res.status(200).json({
-			message: 'Category deleted',
-			categories
+			message: error.message
 		});
 	}
 });
@@ -466,20 +334,21 @@ router.delete('/:categoryId', (req, res) => {
  *           application/json:
  *             schema:
  *               type: object
- *               $ref: '#/components/schemas/ErrorNotFound'
+ *               $ref: '#/components/schemas/Error'
 */
-router.get('/:categoryId/products', (req, res) => {
+router.get('/:categoryId/products', async (req, res) => {
 	const { categoryId } = req.params;
 
-	const index = categories.findIndex((category) => category.id == categoryId);
+	try {
+		const products = await service.findProducts(categoryId);
 
-	if (index === -1) {
+		res.status(200).json(products);
+	}
+	catch (error) {
 		res.status(404).json({
-			message: "Not found"
+			message: error.message
 		});
-	} else {
-		res.status(200).json(products.filter((product) => product.category == categoryId));
-	}	
+	}
 });
 
 module.exports = router;
