@@ -18,7 +18,7 @@ const service = new ProductsService();
  *           type: integer
  *           description: Product id.
  *           example: 2
- *         title:
+ *         name:
  *           type: string
  *           description: Prodyct name.
  *           example: Matcha mochi

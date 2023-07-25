@@ -18,7 +18,7 @@ const service = new CategoriesService();
  *           type: integer
  *           description: Category id.
  *           example: 2
- *         title:
+ *         name:
  *           type: string
  *           description: Category name.
  *           example: Fruits
@@ -33,7 +33,7 @@ const service = new CategoriesService();
  *           type: integer
  *           description: Product id.
  *           example: 2
- *         title:
+ *         name:
  *           type: string
  *           description: Prodyct name.
  *           example: Matcha mochi

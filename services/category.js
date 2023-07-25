@@ -8,34 +8,34 @@ class CategoriesService {
 	generate() {
  		this.categories = [{
 				"id": 1,
-				"title": "Anko",
+				"name": "Anko",
 				"description": "Filled with red bean cream"
 			},
 			{
 				"id": 2,
-				"title": "Fruits",
+				"name": "Fruits",
 				"description": "Filled with fruit cream"
 			},
 			{
 				"id": 3,
-				"title": "Ice cream",
+				"name": "Ice cream",
 				"description": "Filled with ice cream"
 			},
 			{
 				"id": 4,
-				"title": "Cream",
+				"name": "Cream",
 				"description": "Filled with sweet cream"
 			},
 			{
 				"id": 5,
-				"title": "Nuts and seeds",
+				"name": "Nuts and seeds",
 				"description": "Filled with nuts and seeds cream"
 			},
 		];
 
 	 	this.products = [{
 				"id": 1,
-				"title": "Strawberry mochi",
+				"name": "Strawberry mochi",
 				"price": 250,
 				"description": "Mochi filled with strawberry cream",
 				"category": 2,
@@ -43,7 +43,7 @@ class CategoriesService {
 			},
 			{
 				"id": 2,
-				"title": "Matcha mochi",
+				"name": "Matcha mochi",
 				"price": 300,
 				"description": "Mochi filled with matcha tea cream",
 				"category": 3,
@@ -51,7 +51,7 @@ class CategoriesService {
 			},
 			{
 				"id": 3,
-				"title": "Sesame mochi",
+				"name": "Sesame mochi",
 				"price": 300,
 				"description": "Mochi filled with sesame cream",
 				"category": 6,
@@ -59,7 +59,7 @@ class CategoriesService {
 			},
 			{
 				"id": 4,
-				"title": "Chocolate mochi",
+				"name": "Chocolate mochi",
 				"price": 250,
 				"description": "Mochi filled with chocolate cream",
 				"category": 4,
@@ -67,7 +67,7 @@ class CategoriesService {
 			},
 			{
 				"id": 5,
-				"title": "Mango mochi",
+				"name": "Mango mochi",
 				"price": 300,
 				"description": "Mochi filled with mango cream",
 				"category": 2,
@@ -75,7 +75,7 @@ class CategoriesService {
 			},
 			{
 				"id": 6,
-				"title": "White Chocolate mochi",
+				"name": "White Chocolate mochi",
 				"price": 350,
 				"description": "Mochi filled with white chocolate cream",
 				"category": 4,
