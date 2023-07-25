@@ -1,6 +1,8 @@
 const express = require('express');
 
 const ProductsService = require('./../services/product');
+const validatorHandler = require('./../middlewares/validation-handler');
+const { createProductSchema, updateProductSchema, getProductSchema } = require('./../schemas/product');
 
 const router = express.Router();
 const service = new ProductsService();
@@ -42,7 +44,22 @@ const service = new ProductsService();
  *         message:
  *           type: string
  *           description: Error message.
- *           example: Product not found
+ *           example: Not Allowed
+ *     BoomError:
+ *       type: object
+ *       properties:
+ *         statusCode:
+ *           type: integer
+ *           description: Error Status Code.
+ *           example: 400
+ *         error:
+ *           type: string
+ *           description: Error message.
+ *           example: Bad Request
+ *         message:
+ *           type: string
+ *           description: Error detail.
+ *           example: name is required
  */
 
 /**
@@ -61,6 +78,13 @@ const service = new ProductsService();
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/Product'
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               $ref: '#components/schemas/Error'
 */ 
 router.get('/', async (req, res) => {
 	const { search } = req.query;
@@ -97,25 +121,38 @@ router.get('/', async (req, res) => {
  *               type: object
  *               $ref: '#/components/schemas/Product'
  *       404:
- *         description: Error not found
+ *         description: Not Found Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               $ref: '#components/schemas/BoomError'
+ *       400:
+ *         description: Bad Request Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               $ref: '#components/schemas/BoomError'
+ *       500:
+ *         description: Internal Server Error
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               $ref: '#components/schemas/Error'
 */
-router.get('/:productId', async (req, res) => {
-	const { productId } = req.params;
-
+router.get('/:productId', 
+    validatorHandler(getProductSchema, 'params'),
+    async (req, res, next) => {
 	try {
+	   const { productId } = req.params;
 		const product = await service.findOne(productId);
 
 		res.status(200).json(product);
 	}
 	catch (error) {
-		res.status(404).json({
-			message: error.message
-		});
+        next(error);
 	}
 });
 
@@ -139,8 +176,24 @@ router.get('/:productId', async (req, res) => {
  *             schema:
  *               type: object
  *               $ref: '#/components/schemas/Product'
+ *       400:
+ *         description: Bad Request Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               $ref: '#components/schemas/BoomError'
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               $ref: '#components/schemas/Error'
 */
-router.post('/', async (req, res) => {
+router.post('/', 
+    validatorHandler(createProductSchema, 'body'),
+    async (req, res) => {
 	const body = req.body;
 	const product = await service.create(body);
 
@@ -176,14 +229,31 @@ router.post('/', async (req, res) => {
  *               type: object
  *               $ref: '#/components/schemas/Product'
  *       404:
- *         description: Error not found
+ *         description: Not Found Error
  *         content:
  *           application/json:
  *             schema:
  *               type: object
- *               $ref: '#/components/schemas/Error'
+ *               $ref: '#components/schemas/BoomError'
+ *       400:
+ *         description: Bad Request Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               $ref: '#components/schemas/BoomError'
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               $ref: '#components/schemas/Error'
 */
-router.put('/:productId', async (req, res) => {
+router.put('/:productId', 
+    validatorHandler(getProductSchema, 'params'),
+    validatorHandler(updateProductSchema, 'body'),
+    async (req, res) => {
 	const body = req.body;
 	const { productId } = req.params;
 
@@ -193,9 +263,7 @@ router.put('/:productId', async (req, res) => {
 		res.status(200).json(product);
 	}
 	catch (error) {
-		res.status(404).json({
-			message: error.message
-		});
+		next(error);
 	}
 });
 
@@ -228,14 +296,31 @@ router.put('/:productId', async (req, res) => {
  *               type: object
  *               $ref: '#/components/schemas/Product'
  *       404:
- *         description: Error not found
+ *         description: Not Found Error
  *         content:
  *           application/json:
  *             schema:
  *               type: object
- *               $ref: '#/components/schemas/Error'
+ *               $ref: '#components/schemas/BoomError'
+ *       400:
+ *         description: Bad Request Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               $ref: '#components/schemas/BoomError'
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               $ref: '#components/schemas/Error'
 */
-router.patch('/:productId', async (req, res) => {
+router.patch('/:productId', 
+    validatorHandler(getProductSchema, 'params'),
+    validatorHandler(updateProductSchema, 'body'),
+    async (req, res) => {
 	const body = req.body;
 	const { productId } = req.params;
 	
@@ -244,11 +329,9 @@ router.patch('/:productId', async (req, res) => {
 
 		res.status(200).json(product);
 	}
-	catch (error) {
-		res.status(404).json({
-			message: error.message
-		});
-	}
+    catch (error) {
+        next(error);
+    }
 });
 
  /**
@@ -273,14 +356,30 @@ router.patch('/:productId', async (req, res) => {
  *             schema:
  *               type: integer
  *       404:
- *         description: Error not found
+ *         description: Not Found Error
  *         content:
  *           application/json:
  *             schema:
  *               type: object
- *               $ref: '#/components/schemas/Error'
+ *               $ref: '#components/schemas/BoomError'
+ *       400:
+ *         description: Bad Request Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               $ref: '#components/schemas/BoomError'
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               $ref: '#components/schemas/Error'
 */
-router.delete('/:productId', async (req, res) => {
+router.delete('/:productId', 
+    validatorHandler(getProductSchema, 'params'),
+    async (req, res) => {
 	const { productId } = req.params;
 
 	try {
@@ -289,9 +388,7 @@ router.delete('/:productId', async (req, res) => {
 		res.status(200).json(id);
 	} 
 	catch (error) {
-		res.status(404).json({
-			message: error.message
-		});
+		next(error);
 	}
 });
 

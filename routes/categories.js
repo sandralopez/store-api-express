@@ -1,7 +1,8 @@
 const express = require('express');
 
 const CategoriesService = require('./../services/category');
-const ProductsService = require('./../services/product');
+const validatorHandler = require('./../middlewares/validation-handler');
+const { createCategorySchema, updateCategorySchema, getCategorySchema } = require('./../schemas/category');
 
 const router = express.Router();
 const service = new CategoriesService();
@@ -58,7 +59,22 @@ const service = new CategoriesService();
  *         message:
  *           type: string
  *           description: Error message.
- *           example: Not found
+ *           example: Not Allowed
+ *     BoomError:
+ *       type: object
+ *       properties:
+ *         statusCode:
+ *           type: integer
+ *           description: Error Status Code.
+ *           example: 400
+ *         error:
+ *           type: string
+ *           description: Error message.
+ *           example: Bad Request
+ *         message:
+ *           type: string
+ *           description: Error detail.
+ *           example: name is required
  */
 
 /**
@@ -77,6 +93,13 @@ const service = new CategoriesService();
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/Category'
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               $ref: '#components/schemas/Error'
 */ 
 router.get('/', async (req, res) => {
 	const categories = await service.find();
@@ -107,14 +130,30 @@ router.get('/', async (req, res) => {
  *               type: object
  *               $ref: '#/components/schemas/Category'
  *       404:
- *         description: Error not found
+ *         description: Not Found Error
  *         content:
  *           application/json:
  *             schema:
  *               type: object
- *               $ref: '#/components/schemas/Error'
+ *               $ref: '#components/schemas/BoomError'
+ *       400:
+ *         description: Bad Request Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               $ref: '#components/schemas/BoomError'
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               $ref: '#components/schemas/Error'
 */
-router.get('/:categoryId', async (req, res) => {
+router.get('/:categoryId', 
+    validatorHandler(getCategorySchema, 'params'),
+    async (req, res) => {
 	const { categoryId } = req.params;
 
 	try {
@@ -123,9 +162,7 @@ router.get('/:categoryId', async (req, res) => {
 		res.status(200).json(category);
 	}
 	catch (error) {
-		res.status(404).json({
-			message: error.message
-		});
+        next(error);
 	}
 });
 
@@ -149,8 +186,24 @@ router.get('/:categoryId', async (req, res) => {
  *             schema:
  *               type: object
  *               $ref: '#/components/schemas/Category'
+ *       400:
+ *         description: Bad Request Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               $ref: '#components/schemas/BoomError'
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               $ref: '#components/schemas/Error'
 */
-router.post('/', async (req, res) => {
+router.post('/', 
+    validatorHandler(createCategorySchema, 'body'),
+    async (req, res) => {
 	const body = req.body;
 	const category = await service.create(body);
 
@@ -186,14 +239,31 @@ router.post('/', async (req, res) => {
  *               type: object
  *               $ref: '#/components/schemas/Cateogory'
  *       404:
- *         description: Error not found
+ *         description: Not Found Error
  *         content:
  *           application/json:
  *             schema:
  *               type: object
- *               $ref: '#/components/schemas/Error'
+ *               $ref: '#components/schemas/BoomError'
+ *       400:
+ *         description: Bad Request Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               $ref: '#components/schemas/BoomError'
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               $ref: '#components/schemas/Error'
 */
-router.put('/:categoryId', async (req, res) => {
+router.put('/:categoryId', 
+    validatorHandler(getCategorySchema, 'params'),
+    validatorHandler(updateCategorySchema, 'body'),
+    async (req, res) => {
 	const body = req.body;
 	const { categoryId } = req.params;
 
@@ -203,9 +273,7 @@ router.put('/:categoryId', async (req, res) => {
 		res.status(200).json(category);
 	}
 	catch (error) {
-		res.status(404).json({
-			message: error.message
-		});
+		next(error);
 	}
 });
 
@@ -238,14 +306,31 @@ router.put('/:categoryId', async (req, res) => {
  *               type: object
  *               $ref: '#/components/schemas/Category'
  *       404:
- *         description: Error not found
+ *         description: Not Found Error
  *         content:
  *           application/json:
  *             schema:
  *               type: object
- *               $ref: '#/components/schemas/Error'
+ *               $ref: '#components/schemas/BoomError'
+ *       400:
+ *         description: Bad Request Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               $ref: '#components/schemas/BoomError'
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               $ref: '#components/schemas/Error'
 */
-router.patch('/:categoryId', async (req, res) => {
+router.patch('/:categoryId', 
+    validatorHandler(getCategorySchema, 'params'),
+    validatorHandler(updateCategorySchema, 'body'),
+    async (req, res) => {
 	const body = req.body;
 	const { categoryId } = req.params;
 
@@ -255,9 +340,7 @@ router.patch('/:categoryId', async (req, res) => {
 		res.status(200).json(category);
 	}
 	catch (error) {
-		res.status(404).json({
-			message: error.message
-		});
+		next(error);
 	}
 });
 
@@ -283,14 +366,30 @@ router.patch('/:categoryId', async (req, res) => {
  *             schema:
  *               type: integer
  *       404:
- *         description: Error not found
+ *         description: Not Found Error
  *         content:
  *           application/json:
  *             schema:
  *               type: object
- *               $ref: '#/components/schemas/Error'
+ *               $ref: '#components/schemas/BoomError'
+ *       400:
+ *         description: Bad Request Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               $ref: '#components/schemas/BoomError'
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               $ref: '#components/schemas/Error'
 */
-router.delete('/:categoryId', async (req, res) => {
+router.delete('/:categoryId', 
+    validatorHandler(getCategorySchema, 'params'),
+    async (req, res) => {
 	const { categoryId } = req.params;
 
 	try {
@@ -299,9 +398,7 @@ router.delete('/:categoryId', async (req, res) => {
 		res.status(200).json(id);
 	} 
 	catch (error) {
-		res.status(404).json({
-			message: error.message
-		});
+		next(error);
 	}
 });
 
@@ -329,14 +426,30 @@ router.delete('/:categoryId', async (req, res) => {
  *               items:
  *                 $ref: '#/components/schemas/Product'
  *       404:
- *         description: Error not found
+ *         description: Not Found Error
  *         content:
  *           application/json:
  *             schema:
  *               type: object
- *               $ref: '#/components/schemas/Error'
+ *               $ref: '#components/schemas/BoomError'
+ *       400:
+ *         description: Bad Request Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               $ref: '#components/schemas/BoomError'
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               $ref: '#components/schemas/Error'
 */
-router.get('/:categoryId/products', async (req, res) => {
+router.get('/:categoryId/products', 
+    validatorHandler(getCategorySchema, 'params'),
+    async (req, res) => {
 	const { categoryId } = req.params;
 
 	try {
@@ -345,9 +458,7 @@ router.get('/:categoryId/products', async (req, res) => {
 		res.status(200).json(products);
 	}
 	catch (error) {
-		res.status(404).json({
-			message: error.message
-		});
+		next(error);
 	}
 });
 

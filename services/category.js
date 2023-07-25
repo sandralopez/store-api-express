@@ -100,13 +100,13 @@ class CategoriesService {
 	}
 
 	async findOne(categoryId) {
-		const index = this.categories.findIndex((category) => category.id == categoryId);
+		const category = this.categories.find((category) => category.id == categoryId);
 
-		if (index === -1) {
+		if (!category) {
 			throw new Error('Category not found');
 		}
 
-		return this.categories[index];
+		return category;
 	}
 
 	async update(categoryId, data) {
